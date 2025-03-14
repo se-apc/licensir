@@ -36,15 +36,19 @@ defmodule Licensir.Scanner do
 
   @spec deps() :: list(Mix.Dep.t())
   defp deps() do
-    func = loaded_deps_func_name()
-    apply(Mix.Dep, func, [[]])
+    {module, func} = loaded_deps_func_name()
+    apply(module, func, [[]])
   end
 
   defp loaded_deps_func_name() do
     if Keyword.has_key?(Mix.Dep.__info__(:functions), :load_on_environment) do
-      :load_on_environment
+      {Mix.Dep, :load_on_environment}
     else
-      :loaded
+      if Keyword.has_key?(Mix.Dep.Converger.__info__(:functions), :converge) do
+        {Mix.Dep.Converger, :converge}
+      else
+        {Mix.Dep, :loaded}
+      end
     end
   end
 
